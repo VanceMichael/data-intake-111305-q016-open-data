@@ -1,0 +1,104 @@
+{
+  "identity_fields": [
+    "resource",
+    "row_id",
+    "period"
+  ],
+  "source_records": [
+    {
+      "resource": "funds-a",
+      "row_id": "R1",
+      "period": "2026-10",
+      "region": "3201",
+      "amount": "120.50",
+      "unit": "CNY"
+    },
+    {
+      "resource": "funds-a",
+      "row_id": "R2",
+      "period": "2026-10",
+      "region": "3202",
+      "amount": "80.00",
+      "unit": "CNY"
+    }
+  ],
+  "portal": {
+    "csrf": "form-2026-b"
+  },
+  "routes": {
+    "/feed": {
+      "body": "resource,row_id,period,region,amount,unit\r\nfunds-a,R1,2026-10,3201,120.50,CNY\r\nfunds-a,R2,2026-10,3202,80.00,CNY\r\n",
+      "content_type": "text/csv; charset=utf-8",
+      "headers": {
+        "ETag": "feed-1"
+      }
+    },
+    "/rate-limited": {
+      "status": 429,
+      "headers": {
+        "Retry-After": "2"
+      },
+      "json": {
+        "error": "quota"
+      }
+    },
+    "/unstable": [
+      {
+        "status": 503,
+        "body": "temporarily unavailable"
+      },
+      {
+        "json": {
+          "items": []
+        }
+      }
+    ],
+    "/range": {
+      "body": "0123456789",
+      "range": true
+    },
+    "/range-ignored": {
+      "body": "0123456789"
+    },
+    "/truncated": {
+      "body": "partial",
+      "truncate": true
+    },
+    "/versions/renamed": {
+      "body": "resource,row_id,period,region,appropriation,unit\nfunds-a,R1,2026-11,3201,1.20,10kCNY\n",
+      "content_type": "text/csv"
+    },
+    "/versions/additive": {
+      "body": "resource,row_id,period,region,amount,unit,note\nfunds-a,R3,2026-11,3203,90.00,CNY,provisional\n",
+      "content_type": "text/csv"
+    },
+    "/observations/1": {
+      "json": {
+        "items": [
+          {
+            "resource": "funds-a",
+            "row_id": "R1",
+            "period": "2026-10",
+            "region": "3201",
+            "amount": "120.50",
+            "unit": "CNY"
+          }
+        ]
+      }
+    },
+    "/observations/2": {
+      "json": {
+        "items": [
+          {
+            "resource": "funds-a",
+            "row_id": "R2",
+            "period": "2026-10",
+            "region": "3202",
+            "amount": "80.00",
+            "unit": "CNY"
+          }
+        ]
+      }
+    }
+  }
+}

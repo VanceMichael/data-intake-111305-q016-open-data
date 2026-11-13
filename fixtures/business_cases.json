@@ -1,0 +1,17 @@
+[
+  {
+    "name": "semantic_drift",
+    "situation": "改名同时改单位",
+    "observable": "隔离并展示语义变化而非位置猜测"
+  },
+  {
+    "name": "scoped_mapping",
+    "situation": "只批准选定批次的映射",
+    "observable": "不改写其他历史解释"
+  },
+  {
+    "name": "replay_live_overlap",
+    "situation": "隔离重放与新抓取并行",
+    "observable": "不重复落地且发布代次不倒退"
+  }
+]
