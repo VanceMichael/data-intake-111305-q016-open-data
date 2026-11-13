@@ -1,5 +1,5 @@
 import unittest
-from supplier_rpa.supplier_portal import inspect_record
+from open_data.dataset_schema import inspect_record
 
 class RecordTests(unittest.TestCase):
     def test_normalizes_identity_and_preserves_payload(self):
@@ -8,7 +8,7 @@ class RecordTests(unittest.TestCase):
         self.assertEqual(result["key"], "item-1")
         self.assertEqual(result["revision"], 2)
         self.assertEqual(result["value"], {"name": "sample"})
-        self.assertEqual(result["event"], "submission_reconciliation")
+        self.assertEqual(result["event"], "quarantine_replay")
 
     def test_rejects_missing_identity(self):
         with self.assertRaisesRegex(ValueError, "missing fields"):

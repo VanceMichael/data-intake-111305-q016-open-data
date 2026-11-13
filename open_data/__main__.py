@@ -1,6 +1,6 @@
 import json
 import sys
-from .supplier_portal import inspect_record
+from .dataset_schema import inspect_record
 
 def main():
     sample = {"source": "station-a", "key": "demo-01", "revision": 1, "value": "synthetic"}
