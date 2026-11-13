@@ -1,17 +1,17 @@
 [
   {
-    "name": "semantic_drift",
-    "situation": "改名同时改单位",
-    "observable": "隔离并展示语义变化而非位置猜测"
+    "name": "ragged_columns",
+    "situation": "相邻varbind来自不同索引",
+    "observable": "按OID索引成行，不按位置串列"
   },
   {
-    "name": "scoped_mapping",
-    "situation": "只批准选定批次的映射",
-    "observable": "不改写其他历史解释"
+    "name": "counter_break",
+    "situation": "设备重启或单计数器不连续",
+    "observable": "新连续段不产生伪造增量"
   },
   {
-    "name": "replay_live_overlap",
-    "situation": "隔离重放与新抓取并行",
-    "observable": "不重复落地且发布代次不倒退"
+    "name": "walk_incomplete",
+    "situation": "tooBig后还没走完",
+    "observable": "轮询不冒充整表覆盖"
   }
 ]

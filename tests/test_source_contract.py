@@ -13,13 +13,11 @@ class SourceContractTests(unittest.TestCase):
         records = scenario["source_records"]
         with serve(scenario) as origin:
             client = Client(origin.base_url)
-            changed = decode_records(client.fetch("/versions/renamed").body, "text/csv")
-            self.assertIn("amount", records[0])
-            self.assertNotIn("amount", changed[0])
-            self.assertIn("appropriation", changed[0])
-            self.assertNotEqual(records[0]["unit"], changed[0]["unit"])
-            additive = decode_records(client.fetch("/versions/additive").body, "text/csv")
-            self.assertIn("note", additive[0])
+            bindings = records[0]["varbinds"]
+            self.assertNotEqual(bindings[0]["oid"].rsplit(".", 1)[-1], bindings[1]["oid"].rsplit(".", 1)[-1])
+            self.assertEqual(records[1]["error_status"], "tooBig")
+            self.assertLess(records[1]["sysUpTime"], records[0]["sysUpTime"])
+            self.assertEqual(records[2]["varbinds"][0]["type"], "endOfMibView")
 
     def test_every_record_has_the_declared_source_identity(self):
         scenario = load_scenario()

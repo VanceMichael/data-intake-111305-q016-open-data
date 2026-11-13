@@ -2,7 +2,7 @@
 
 ## 记录与身份
 
-默认来源入口为 `/feed`，媒体格式为 `csv`。来源身份字段是 `resource`、`row_id`、`period`。这些字段表示来源自身声明，不等同于已经解决的业务实体身份。输入顺序是一次接收的观察顺序，并不保证业务修订有序。
+默认来源入口为 `/feed`，媒体格式为 `json`。来源身份字段是 `agent`、`poll`。这些字段表示来源自身声明，不等同于已经解决的业务实体身份。输入顺序是一次接收的观察顺序，并不保证业务修订有序。
 
 `/observations/1` 等地址允许逐条读取合成观察，返回 `items` 数组。正文、页内嵌入数据与CSV均保留供方原文，不在协议层推断当前有效值。网页中的 `source-records` 是门户向下载客户端提供的公开数据块；表单还带有隐藏控件，令牌用于本地协议状态检查。
 
@@ -18,8 +18,10 @@
 
 ## 领域样例
 
-- `semantic_drift`：改名同时改单位；业务侧关注隔离并展示语义变化而非位置猜测。
-- `scoped_mapping`：只批准选定批次的映射；业务侧关注不改写其他历史解释。
-- `replay_live_overlap`：隔离重放与新抓取并行；业务侧关注不重复落地且发布代次不倒退。
+- `ragged_columns`：相邻varbind来自不同索引；业务侧关注按OID索引成行，不按位置串列。
+- `counter_break`：设备重启或单计数器不连续；业务侧关注新连续段不产生伪造增量。
+- `walk_incomplete`：tooBig后还没走完；业务侧关注轮询不冒充整表覆盖。
 
-另外提供 `/versions/renamed`、`/versions/additive`。响应内容和版本由场景文件逐项声明，便于核对实际收到的来源资料。
+## 领域接入契约
+
+网关信封是本地JSON，varbind保留SNMP值类型及OID。GetBulk、tooBig和endOfMibView参考RFC 3416；接口表、ifIndex及ifCounterDiscontinuityTime参考RFC 2863。MIB列定义在本地配置，不从网络下载。只读合成资料，不发扫描或设备写入命令。
