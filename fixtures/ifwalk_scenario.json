@@ -1,0 +1,169 @@
+{
+  "agents": {
+    "switch-a": {
+      "max_repetitions_limit": 4,
+      "polls": {
+        "1": {
+          "sysUpTime": 800,
+          "rows": {
+            "7": {
+              "ifDescr": "uplink",
+              "ifInOctets": 1000,
+              "ifOutOctets": 2000,
+              "ifHCInOctets": 100000,
+              "ifHCOutOctets": 200000,
+              "ifCounterDiscontinuityTime": 0
+            },
+            "8": {
+              "ifDescr": "downlink",
+              "ifInOctets": 3000,
+              "ifOutOctets": 4000,
+              "ifHCInOctets": 60000,
+              "ifCounterDiscontinuityTime": 0
+            }
+          }
+        },
+        "2": {
+          "sysUpTime": 900,
+          "rows": {
+            "7": {
+              "ifDescr": "uplink",
+              "ifInOctets": 2600,
+              "ifOutOctets": 4100,
+              "ifHCInOctets": 150000,
+              "ifHCOutOctets": 260000,
+              "ifCounterDiscontinuityTime": 0
+            },
+            "8": {
+              "ifDescr": "downlink",
+              "ifInOctets": 7000,
+              "ifHCInOctets": 10,
+              "ifHCOutOctets": 5000,
+              "ifCounterDiscontinuityTime": 850
+            },
+            "9": {
+              "ifDescr": "guest",
+              "ifInOctets": 5,
+              "ifOutOctets": 6,
+              "ifHCInOctets": 500,
+              "ifHCOutOctets": 600,
+              "ifCounterDiscontinuityTime": 0
+            }
+          }
+        },
+        "3": {
+          "sysUpTime": 12,
+          "rows": {
+            "7": {
+              "ifDescr": "uplink",
+              "ifInOctets": 4294967200,
+              "ifOutOctets": 10,
+              "ifHCInOctets": 300,
+              "ifHCOutOctets": 400,
+              "ifCounterDiscontinuityTime": 0
+            },
+            "8": {
+              "ifDescr": "downlink",
+              "ifInOctets": 20,
+              "ifOutOctets": 30,
+              "ifHCInOctets": 40,
+              "ifHCOutOctets": 50,
+              "ifCounterDiscontinuityTime": 0
+            }
+          }
+        },
+        "4": {
+          "sysUpTime": 200,
+          "rows": {
+            "7": {
+              "ifDescr": "uplink",
+              "ifInOctets": 50,
+              "ifOutOctets": 70,
+              "ifHCInOctets": 900,
+              "ifHCOutOctets": 1000,
+              "ifCounterDiscontinuityTime": 0
+            },
+            "8": {
+              "ifDescr": "downlink",
+              "ifInOctets": 80,
+              "ifOutOctets": 90,
+              "ifHCInOctets": 120,
+              "ifHCOutOctets": 130,
+              "ifCounterDiscontinuityTime": 0
+            }
+          }
+        }
+      },
+      "faults": [
+        {"poll": 4, "request": 1, "action": "drop"},
+        {"poll": 4, "action": "no_such_instance", "column": "ifHCInOctets", "index": 8}
+      ]
+    },
+    "switch-b": {
+      "max_repetitions_limit": 2,
+      "polls": {
+        "1": {
+          "sysUpTime": 5000,
+          "rows": {
+            "1": {
+              "ifDescr": "core-1",
+              "ifInOctets": 11,
+              "ifOutOctets": 12,
+              "ifHCInOctets": 1100,
+              "ifHCOutOctets": 1200,
+              "ifCounterDiscontinuityTime": 0
+            },
+            "2": {
+              "ifDescr": "core-2",
+              "ifInOctets": 21,
+              "ifOutOctets": 22,
+              "ifHCInOctets": 2100,
+              "ifHCOutOctets": 2200,
+              "ifCounterDiscontinuityTime": 0
+            },
+            "3": {
+              "ifDescr": "core-3",
+              "ifInOctets": 31,
+              "ifOutOctets": 32,
+              "ifHCInOctets": 3100,
+              "ifHCOutOctets": 3200,
+              "ifCounterDiscontinuityTime": 0
+            }
+          }
+        },
+        "2": {
+          "sysUpTime": 5100,
+          "rows": {
+            "1": {
+              "ifDescr": "core-1",
+              "ifInOctets": 13,
+              "ifOutOctets": 14,
+              "ifHCInOctets": 1300,
+              "ifHCOutOctets": 1400,
+              "ifCounterDiscontinuityTime": 0
+            },
+            "2": {
+              "ifDescr": "core-2",
+              "ifInOctets": 23,
+              "ifOutOctets": 24,
+              "ifHCInOctets": 2300,
+              "ifHCOutOctets": 2400,
+              "ifCounterDiscontinuityTime": 0
+            },
+            "3": {
+              "ifDescr": "core-3",
+              "ifInOctets": 33,
+              "ifOutOctets": 34,
+              "ifHCInOctets": 3300,
+              "ifHCOutOctets": 3400,
+              "ifCounterDiscontinuityTime": 0
+            }
+          }
+        }
+      },
+      "faults": [
+        {"poll": 2, "action": "drop"}
+      ]
+    }
+  }
+}

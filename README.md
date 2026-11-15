@@ -35,6 +35,26 @@ python3 -m open_data capture --base-url http://127.0.0.1:实际端口 --archive 
 
 归档库只追加来源观察，不用最后一条响应覆盖先前响应。`archive.py` 管理原始内容及完整性，`client.py` 执行一次请求，`decoding.py` 负责来源格式解码，`origin.py` 提供协议演练。业务解释可与原始接收独立演进。
 
+## 接口表接收（原始归档之上）
+
+在原始归档之上新增接口表走查层：`ifmib.py` 是本地 MIB 列定义与 OID 工具，`gateway.py` 是本地合成网关演练服务，`ifstore.py` 持久化轮次、列游标、单元格与连续段，`ifwalk.py` 执行有界 GetBulk 游走、归档信封接入与分设备发布。行按 OID 列前缀加索引后缀组装，不按返回顺序横向配对；每个单元格以 capture_id 回指原始响应归档，断点恢复后仍可解释每一行的证据与连续性断点。
+
+```sh
+python3 -m open_data ifdemo
+```
+
+端到端演练：启动合成网关，对两台设备交错执行有界游走（tooBig 减半领取范围、超时暂停、noSuchInstance 空洞、重启与单计数器 discontinuity、Counter32 回绕），最后分设备发布。常驻方式：
+
+```sh
+python3 -m open_data gateway --scenario fixtures/ifwalk_scenario.json
+python3 -m open_data walk --gateway http://127.0.0.1:端口 --archive .runtime/raw.sqlite3 --state .runtime/walk.sqlite3 --agent switch-a --rounds 4
+python3 -m open_data publish --state .runtime/walk.sqlite3 --agent switch-a
+python3 -m open_data ingest --archive .runtime/raw.sqlite3 --state .runtime/walk.sqlite3 --source local-source --finalize
+```
+
+`walk` 按设备独立推进，单台失败不拖累其它设备；请求预算用尽即暂停并保留列游标，再次执行从断点继续。`ingest` 把归档中的来源记录（如 `/feed`）接入走查状态，按摘要去重，可重复执行。`publish` 输出每台设备的断点、轮次记录、本轮行（含缺失列与空洞证据）及连续段；增量只在连续段内计算。走查口径详见 `docs/source-protocol.md`。
+
+
 ## 开发资料
 
 来源协议见 `docs/source-protocol.md`，领域观察关系见 `tests/test_source_contract.py`。`fixtures/business_cases.json` 保存业务侧关注的交错情况及可观察口径；基础版测试验证的是原始采集和协议，不代表业务处理已经具备这些能力。所有条目、机构、文件内容和门户回执均为本地合成资料，不包含真实用户身份。

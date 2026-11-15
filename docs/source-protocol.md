@@ -25,3 +25,19 @@
 ## 领域接入契约
 
 网关信封是本地JSON，varbind保留SNMP值类型及OID。GetBulk、tooBig和endOfMibView参考RFC 3416；接口表、ifIndex及ifCounterDiscontinuityTime参考RFC 2863。MIB列定义在本地配置，不从网络下载。只读合成资料，不发扫描或设备写入命令。
+
+## 合成网关协议
+
+`open_data.gateway` 在回环地址提供合成网关，把场景文件中的接口表按 GetBulk 语义返回为已解码信封，不连接任何真实设备。
+
+`GET /getbulk?agent=名称&poll=轮次&oids=游标1,游标2&max_repetitions=N` 返回 `{agent, poll, sysUpTime, error_status, varbinds}`。每个请求游标按列独立推进：响应该列游标之后最多 N 个实例，列的实例集合互不相同（缺列即稀疏响应）；列耗尽返回该游标OID的 endOfMibView。`max_repetitions` 超过场景声明的 `max_repetitions_limit` 时返回 `error_status: tooBig` 和空 varbinds。场景 `faults` 可声明 `drop`（直接断开，模拟响应丢失）、`http500`、`no_such_instance`（指定列的指定索引）。缺省轮次沿用最近一轮的表，模拟轮间保持。
+
+## 接口表接收口径
+
+- 行按 OID 列前缀加索引后缀组装；响应内 varbind 顺序只作审计，不参与配对。ifTable/ifXTable 的索引是单级 ifIndex，多级后缀按越界杂项记录。
+- 列只有在本轮拿到 endOfMibView 才算核实；tooBig 只把下一次领取范围减半，不作废已收到的单元格。
+- 超时（传输断开或信封 `error_status: timeout`）与 noSuchInstance 都不是整表已清空：前者重试有界、轮次保持未完成，后者记为该索引该列的空洞。
+- 一轮请求预算用尽即暂停，列游标持久化，下次从断点继续；设备之间状态独立，互不影响进度。
+- sysUpTime 回落是重启证据，关闭该设备全部开放连续段；ifCounterDiscontinuityTime 前进关闭该接口的开放段；Counter64 段内回落另起新段；Counter32 段内回落按回绕处理。增量只在连续段内计算，不做跨段相减。
+- 轮次固定时只用本轮单元格计算行完整性，不从上一轮补列；每行的每个单元格以 capture_id 回指原始响应归档。
+
