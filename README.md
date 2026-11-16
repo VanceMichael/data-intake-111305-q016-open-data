@@ -35,6 +35,34 @@ python3 -m open_data capture --base-url http://127.0.0.1:实际端口 --archive 
 
 归档库只追加来源观察，不用最后一条响应覆盖先前响应。`archive.py` 管理原始内容及完整性，`client.py` 执行一次请求，`decoding.py` 负责来源格式解码，`origin.py` 提供协议演练。业务解释可与原始接收独立演进。
 
+## SNMP 接口表成行采集
+
+在原始响应归档之上，`mib.py`、`gateway.py`、`walk.py`、`store.py`、`continuity.py` 实现接口表（ifTable/ifXTable）接收。合成网关只监听回环地址、只读，不扫描真实网络也不写设备。
+
+- **按 OID 成行，不按位置配对**：varbind 按列 OID 前缀与索引后缀拆格，再按 `(代理, 索引后缀)` 组装行；SNMP 值类型（Counter32/Counter64/OctetString/TimeTicks 及 noSuchInstance 等异常）原样保留。
+- **有界游走**：逐列 GetBulk，列页预算、整轮请求预算、传输重试都有上限。tooBig 调小 `max_reps` 同游标重试；只有 `endOfMibView` 才标记该列本轮已核实；504 超时与 noSuchInstance 都不是整表走完或清空。
+- **轮次记录与发布**：轮次区分 complete/aborted，发布范围为 full/partial，清单列明已核实列、完整行以及缺列或冲突的不完整行；轮内改表会回滚该列待发布单元格并重读，不把上一轮残留列补进本轮。
+- **连续段**：sysUpTime 回落、ifCounterDiscontinuityTime 变化、ifIndex 复用导致的身份指纹变化、观测缺口、无声明的计数器下降都切段；Counter32 小回绕按 2^32 修正，Counter64 下降直接开新段，段起点不做减法，避免伪造巨大流量。
+- **多设备与断点恢复**：每台设备轮次号独立，互不拖累；进程重开后未完成轮次记为中断。每个单元格都带 OID、请求与归档 capture，可逐格回溯证据。
+
+```sh
+python3 -m open_data snmp-demo
+```
+
+离线端到端演示覆盖 ragged 列、tooBig、超时重试、noSuchInstance、轮内改表、Counter 回绕、重启复用 ifIndex、单计数器不连续与中断恢复。常驻网关与单轮采集：
+
+```sh
+python3 -m open_data gateway
+python3 -m open_data walk --base-url http://127.0.0.1:实际端口 \
+  --archive .runtime/raw.sqlite3 --store .runtime/tables.sqlite3 \
+  --source local-snmp-gateway --agent switch-a
+python3 -m open_data poll --store .runtime/tables.sqlite3 --poll-id 1
+python3 -m open_data evidence --store .runtime/tables.sqlite3 --poll-id 1 --index 7
+python3 -m open_data segments --store .runtime/tables.sqlite3 --agent switch-a
+```
+
+`gateway --scenario 文件` 与 `serve --scenario` 行为一致：找不到指定文件直接报错，不回退默认资料。
+
 ## 开发资料
 
 来源协议见 `docs/source-protocol.md`，领域观察关系见 `tests/test_source_contract.py`。`fixtures/business_cases.json` 保存业务侧关注的交错情况及可观察口径；基础版测试验证的是原始采集和协议，不代表业务处理已经具备这些能力。所有条目、机构、文件内容和门户回执均为本地合成资料，不包含真实用户身份。

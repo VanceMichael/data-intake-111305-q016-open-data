@@ -24,4 +24,23 @@
 
 ## 领域接入契约
 
-网关信封是本地JSON，varbind保留SNMP值类型及OID。GetBulk、tooBig和endOfMibView参考RFC 3416；接口表、ifIndex及ifCounterDiscontinuityTime参考RFC 2863。MIB列定义在本地配置，不从网络下载。只读合成资料，不发扫描或设备写入命令。
+网关信封是本地JSON，varbind保留SNMP值类型及OID。GetBulk、tooBig和endOfMibView参考RFC 3416；接口表、ifIndex及ifCounterDiscontinuityTime参考RFC 2863。MIB列定义在本地配置（`open_data/mib.py`），不从网络下载。只读合成资料，不发扫描或设备写入命令。
+
+## 合成 SNMP 网关（`/snmp/bulk`）
+
+场景文件 `fixtures/snmp_gateway.json` 只含虚构设备。网关按 OID 子标识符元组的词法顺序返回 varbind，请求参数为 `agent`、`poll`（调用方轮次号）、`column`（列 OID 前缀）、`oid`（游标，只返回严格大于它的后继）、`max_reps`。
+
+- `error_status=tooBig`：当前 `max_reps` 超出设备阈值。接收方应调小下一次领取范围并在同一游标重试；在最小范围仍被拒时中止该轮，而不是无限重试。
+- `endOfMibView`：该列游走结束的唯一证据。没有它，列只能标记为未核实。
+- `noSuchInstance`：只表示某个实例不存在，作为带 OID 的异常证据保留，不是整表清空。
+- HTTP 504：模拟网关超时，没有 SNMP 信封，按传输故障在同一游标有限重试；超时不产生单元格证据，也不是游走结束。
+- 场景事件 `mutate` 在一次轮询内改表，响应信封的 `events` 字段会标注；接收方回滚该列已观察的待发布单元格并从列起点重读，发布改表后的一致视图，前后两份响应都在归档中留证。
+- 列级事件的 `when_request` 是该列的第几次数据请求；只得到 `endOfMibView` 的探针不消耗该序号。
+
+## 成行、发布与连续性
+
+- varbind 一律按列 OID 前缀加索引后缀拆格，再按 `(代理, 索引后缀)` 成行，绝不按响应里的位置横向配对；值的 SNMP 类型原样保留。
+- 轮次状态区分 `running/complete/aborted`。进程重开时未完成的 running 轮次记为 `aborted`（`interrupted_by_restart`），不冒充完整覆盖；发布范围相应为 `full` 或 `partial`，清单列明已核实列、完整行与缺列/冲突的不完整行。
+- 连续段只在段内相邻点间计算增量。sysUpTime 回落、`ifCounterDiscontinuityTime` 变化、同 ifIndex 身份指纹变化（ifIndex 被复用）、观测缺口、无声明的计数器下降都会切段；Counter32 仅对小于半量程的回绕做 2^32 修正，Counter64 下降一律开新段，新段起点 `delta=null`，不把两个不可比的数相减。
+- 每个单元格都记录自身 OID、所属请求与归档 capture，可通过 `evidence` 命令逐格回溯到原始响应。
+
